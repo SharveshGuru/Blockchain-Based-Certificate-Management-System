@@ -1,0 +1,8 @@
+{
+  "index": {
+    "fields": ["docType", "recipientId", "issuerOrg", "certType", "issuedAt"]
+  },
+  "ddoc": "indexOwnerDoc",
+  "name": "indexOwner",
+  "type": "json"
+}

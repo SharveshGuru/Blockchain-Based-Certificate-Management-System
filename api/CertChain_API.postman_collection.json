@@ -1,0 +1,668 @@
+{
+  "info": {
+    "name": "CertChain API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Complete test collection for CertChain Hyperledger Fabric API"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "issuer_token",
+      "value": ""
+    },
+    {
+      "key": "recipient_token",
+      "value": ""
+    },
+    {
+      "key": "cert_id",
+      "value": "CERT-001"
+    },
+    {
+      "key": "cert_hash",
+      "value": ""
+    },
+    {
+      "key": "merkle_root",
+      "value": ""
+    },
+    {
+      "key": "ipfs_cid",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Register Issuer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"university_admin\",\n  \"password\": \"pass1234\",\n  \"role\": \"issuer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Register Recipient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student_user\",\n  \"password\": \"pass1234\",\n  \"role\": \"recipient\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login as Issuer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('issuer_token', res.token);",
+                  "  console.log('Issuer token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"university_admin\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login as Recipient",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('recipient_token', res.token);",
+                  "  console.log('Recipient token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/api/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"student_user\",\n  \"password\": \"pass1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Assets",
+      "item": [
+        {
+          "name": "Upload Logo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/upload-asset",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "assetName",
+                  "value": "university_logo",
+                  "type": "text"
+                },
+                {
+                  "key": "assetType",
+                  "value": "LOGO",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Signature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/upload-asset",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "assetName",
+                  "value": "dean_signature",
+                  "type": "text"
+                },
+                {
+                  "key": "assetType",
+                  "value": "SIGNATURE",
+                  "type": "text"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Issue Certificate",
+      "item": [
+        {
+          "name": "Issue Certificate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.certHash) pm.collectionVariables.set('cert_hash', res.certHash);",
+                  "if (res.ipfsCid) pm.collectionVariables.set('ipfs_cid', res.ipfsCid);",
+                  "console.log('certHash:', res.certHash);",
+                  "console.log('ipfsCid:', res.ipfsCid);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/issue",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"{{cert_id}}\",\n  \"issuerOrg\": \"MIT University\",\n  \"recipientId\": \"student_user\",\n  \"certType\": \"ACADEMIC\",\n  \"metadata\": {\n    \"degree\": \"Bachelor of Science\",\n    \"major\": \"Computer Science\",\n    \"graduationYear\": \"2024\",\n    \"grade\": \"First Class\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Issue Certificate (Recipient tries \u2014 should 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{recipient_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/issue",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"CERT-FAIL\",\n  \"issuerOrg\": \"Hacker\",\n  \"recipientId\": \"student_user\",\n  \"certType\": \"ACADEMIC\",\n  \"metadata\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Issue Duplicate (should 500 \u2014 already exists)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/issue",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"{{cert_id}}\",\n  \"issuerOrg\": \"MIT University\",\n  \"recipientId\": \"student_user\",\n  \"certType\": \"ACADEMIC\",\n  \"metadata\": {\n    \"degree\": \"Bachelor of Science\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Fetch Certificates",
+      "item": [
+        {
+          "name": "Get Single Certificate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/certificate/{{cert_id}}"
+          }
+        },
+        {
+          "name": "Get Certificate History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/certificate/{{cert_id}}/history"
+          }
+        },
+        {
+          "name": "Recipient \u2014 My Locker",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{recipient_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/locker"
+          }
+        },
+        {
+          "name": "Issuer \u2014 All Certs by Org",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/issuer?org=MIT University",
+              "query": [
+                {
+                  "key": "org",
+                  "value": "MIT University"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Filter by Type \u2014 ACADEMIC",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/certificates/type/ACADEMIC"
+          }
+        },
+        {
+          "name": "Filter by Type \u2014 Invalid (should 400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/certificates/type/FAKE"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Verify (Public)",
+      "item": [
+        {
+          "name": "Verify by Hash \u2014 Valid",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/verify/{{cert_id}}?hash={{cert_hash}}",
+              "query": [
+                {
+                  "key": "hash",
+                  "value": "{{cert_hash}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify by Hash \u2014 Tampered",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/verify/{{cert_id}}?hash=000000fakehash000000",
+              "query": [
+                {
+                  "key": "hash",
+                  "value": "000000fakehash000000"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify by Merkle Root \u2014 Valid",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// First fetch the cert to get merkleRoot, then paste it into the variable",
+                  "// Or run 'Get Single Certificate' first and copy merkleRoot into collection var"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/verify-merkle/{{cert_id}}?merkleRoot={{merkle_root}}",
+              "query": [
+                {
+                  "key": "merkleRoot",
+                  "value": "{{merkle_root}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify \u2014 Missing hash param (should 400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/verify/{{cert_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Revoke",
+      "item": [
+        {
+          "name": "Revoke Certificate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/revoke",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"{{cert_id}}\",\n  \"revokeReason\": \"Student record correction required\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify After Revoke (should return REVOKED)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/verify/{{cert_id}}?hash={{cert_hash}}",
+              "query": [
+                {
+                  "key": "hash",
+                  "value": "{{cert_hash}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revoke Again (should 500 \u2014 already revoked)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/revoke",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"{{cert_id}}\",\n  \"revokeReason\": \"Duplicate attempt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Recipient tries to Revoke (should 403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{recipient_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/revoke",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"{{cert_id}}\",\n  \"revokeReason\": \"Unauthorized attempt\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Download PDF",
+      "item": [
+        {
+          "name": "Download PDF from IPFS",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/download/{{ipfs_cid}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Edge Cases",
+      "item": [
+        {
+          "name": "No Token (should 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/locker"
+          }
+        },
+        {
+          "name": "Expired/Bad Token (should 403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer thisIsNotAValidToken"
+              }
+            ],
+            "url": "{{base_url}}/api/locker"
+          }
+        },
+        {
+          "name": "Get Non-Existent Certificate (should 404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/certificate/CERT-DOES-NOT-EXIST"
+          }
+        },
+        {
+          "name": "Issue with Invalid certType (should 500)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{issuer_token}}"
+              }
+            ],
+            "url": "{{base_url}}/api/issue",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"certId\": \"CERT-BAD-TYPE\",\n  \"issuerOrg\": \"MIT University\",\n  \"recipientId\": \"student_user\",\n  \"certType\": \"INVALID_TYPE\",\n  \"metadata\": { \"note\": \"bad type test\" }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

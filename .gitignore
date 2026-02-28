@@ -1,0 +1,64 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Build outputs
+dist/
+build/
+
+# Fabric artifacts
+fabric-samples/test-network/**/crypto-config/
+fabric-samples/test-network/**/organizations/**/peerOrganizations/**/msp/keystore/*
+fabric-samples/test-network/**/organizations/**/peerOrganizations/**/tlsca
+fabric-samples/test-network/**/organizations/**/ordererOrganizations/**/msp/keystore/*
+
+# VSCode
+.vscode/
+
+# Wallets and uploads
+/api/wallet/
+/api/uploads/
+
+# Temporary files
+*.tmp
+*.swp
+
+# Misc
+.idea/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite
+
+# Chaincode
+/chaincode/certchain/node_modules/
+
+# fabric-samples binaries
+/fabric-samples/bin/
+
+# Other
+*.id
+api/app2.js
+certchain-project.tar.gz
+install-fabric.sh
+runcommands.txt
+fabric-samples
